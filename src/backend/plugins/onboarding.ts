@@ -5,7 +5,7 @@
 
 import { pluginLogger } from "../utils/logger.js";
 import { getPluginRuntime } from "./index.js";
-import { onboardingDefaults } from "./bundled-index.js";
+import { onboardingDefaults, isDefaultLookPlugin } from "./bundled-index.js";
 import {
   isLinkedDesktop,
   serialized,
@@ -31,6 +31,8 @@ export const PLUGIN_SETUP_OFFERED_KEY = "onboarding_plugin_setup_offered";
 export type PluginSetupReason = "fresh" | "upgrade";
 
 export interface OnboardingPluginInfo {
+  /** Bundled appearance fallback; may be disabled but never removed. */
+  defaultLook?: boolean;
   id: string;
   name: string;
   description: string;
@@ -104,6 +106,7 @@ function choicePlugins(): ChoicePlugin[] {
     .loader.list()
     .map((plugin) => ({
       id: plugin.id,
+      defaultLook: isDefaultLookPlugin(plugin.id),
       dependencies: Object.keys(plugin.manifest.dependencies ?? {}),
     }));
 }
@@ -125,6 +128,7 @@ export async function describeOnboardingPlugins(): Promise<OnboardingPluginList>
           : { recommended: false, consent: false };
       return {
         id: plugin.id,
+        defaultLook: isDefaultLookPlugin(plugin.id),
         name: plugin.manifest.name,
         description: plugin.manifest.description,
         icon: plugin.manifest.icon ?? null,

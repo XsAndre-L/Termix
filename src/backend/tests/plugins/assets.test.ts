@@ -4,6 +4,7 @@ import path from "node:path";
 import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
 import express from "express";
+import { createCorsMiddleware } from "../../utils/cors-config.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   createPluginAssetsRouter,
@@ -48,11 +49,23 @@ beforeAll(async () => {
   };
 
   const app = express();
+  app.use(createCorsMiddleware());
+  app.get("/private-test", (_req, res) => res.json({ private: true }));
   app.use(
     "/plugin-assets",
     createPluginAssetsRouter((id) =>
       id === "gizmo" ? plugin : id === "gadget" ? installed : undefined,
     ),
+  );
+  app.use(
+    (
+      _err: Error,
+      _req: express.Request,
+      res: express.Response,
+      _next: express.NextFunction,
+    ) => {
+      res.status(403).json({ error: "Forbidden" });
+    },
   );
   server = await new Promise<Server>((resolve) => {
     const created = app.listen(0, "127.0.0.1", () => resolve(created));
@@ -219,5 +232,44 @@ describe("theme stylesheets", () => {
     expect(info.frontend).toBe(false);
     expect(info.themeVersion).toMatch(/^[0-9a-f]{12}$/);
     expect(describePluginFrontend(plugin).themeVersion).toBeNull();
+  });
+});
+
+describe("desktop public asset CORS", () => {
+  it("serves modules, styles and locales to null origins without API credentials", async () => {
+    const previous = process.env.ELECTRON_EMBEDDED;
+    process.env.ELECTRON_EMBEDDED = "true";
+    try {
+      for (const file of ["frontend.js", "frontend.css", "locales/en.json"]) {
+        const res = await fetch(`${baseUrl}/plugin-assets/gizmo/${file}`, {
+          headers: { Origin: "null" },
+        });
+        expect(res.status, file).toBe(200);
+        expect(res.headers.get("access-control-allow-origin")).toBe("*");
+        expect(res.headers.get("access-control-allow-credentials")).toBeNull();
+      }
+      const head = await fetch(`${baseUrl}/plugin-assets/gizmo/frontend.js`, {
+        method: "HEAD",
+        headers: { Origin: "null" },
+      });
+      expect(head.status).toBe(200);
+      for (const [target, method] of [
+        ["/private-test", "GET"],
+        ["/plugin-assets/gizmo/frontend.js", "POST"],
+      ]) {
+        const res = await fetch(`${baseUrl}${target}`, {
+          method,
+          headers: { Origin: "null" },
+        });
+        expect(res.status, `${method} ${target}`).toBe(403);
+      }
+      const backend = await fetch(`${baseUrl}/plugin-assets/gizmo/backend.js`, {
+        headers: { Origin: "null" },
+      });
+      expect(backend.status).toBe(404);
+    } finally {
+      if (previous === undefined) delete process.env.ELECTRON_EMBEDDED;
+      else process.env.ELECTRON_EMBEDDED = previous;
+    }
   });
 });

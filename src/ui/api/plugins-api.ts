@@ -668,6 +668,8 @@ export async function installUploadedPlugin(
 }
 
 export interface OnboardingPluginInfo {
+  /** Bundled appearance fallback; may be disabled but never removed. */
+  defaultLook?: boolean;
   id: string;
   name: string;
   description: string;

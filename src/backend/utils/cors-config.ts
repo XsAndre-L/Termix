@@ -62,6 +62,16 @@ export function createCorsMiddleware(
   ];
 
   return (req: Request, res: Response, next: NextFunction) => {
+    // Public plugin files have their own credential-free CORS policy. A module
+    // imported by Electron's file:// page sends Origin: null, which must stay
+    // blocked on authenticated APIs but is safe for these public GETs.
+    if (
+      (req.method === "GET" || req.method === "HEAD") &&
+      req.path.startsWith("/plugin-assets/")
+    ) {
+      next();
+      return;
+    }
     const handler = cors({
       origin: (origin, callback) => {
         if (isCorsOriginAllowed(req, origin)) return callback(null, true);

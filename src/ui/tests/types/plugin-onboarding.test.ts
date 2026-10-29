@@ -14,6 +14,23 @@ const plugins: ChoicePlugin[] = [
 ];
 
 describe("resolvePluginChoices", () => {
+  it("keeps default looks and their dependencies installed for removal requests", () => {
+    const result = resolvePluginChoices(
+      [
+        { id: "look", defaultLook: true, dependencies: ["base"] },
+        { id: "base", dependencies: [] },
+        { id: "extra", dependencies: [] },
+      ],
+      { look: "remove", base: "remove", extra: "remove" },
+    );
+    expect(result.choices).toEqual({
+      look: "disabled",
+      base: "disabled",
+      extra: "remove",
+    });
+    expect(applyOrder([], result.choices).remove).toEqual(["extra"]);
+  });
+
   it("leaves consistent choices alone", () => {
     const choices = {
       base: "enabled",

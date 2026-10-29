@@ -201,7 +201,7 @@ async function alertOlderDesktop(plugin: RemotePlugin): Promise<void> {
   alertedVersions.add(key);
   await sendCoreAlert({
     title: "Update the desktop app",
-    body: `The server runs a newer ${plugin.name} (${plugin.version}) than this app has. Update the app to get it.`,
+    body: `Update Termix to use ${plugin.name} ${plugin.version} from your server.`,
     severity: "info",
     category: "termix.sync.desktop_outdated",
     dedupeKey: `sync:outdated:${key}`,
@@ -214,8 +214,8 @@ async function alertUnsigned(plugin: RemotePlugin): Promise<void> {
   if (alertedVersions.has(key)) return;
   alertedVersions.add(key);
   await sendCoreAlert({
-    title: "Review a feature from your server",
-    body: `${plugin.name} (${plugin.version}) was copied from your server but is not signed by a key this app trusts, so it stays off here until you turn it on.`,
+    title: "Review synced plugin",
+    body: `${plugin.name} ${plugin.version} was copied from your server. Its signing key is not trusted here. Review it before enabling it.`,
     severity: "warning",
     category: "termix.sync.unsigned_plugin",
     dedupeKey: `sync:${key}`,

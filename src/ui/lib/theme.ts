@@ -7,32 +7,32 @@ import type {
 export const DASHBOARD_CARDS: DashboardCardConfig[] = [
   {
     id: "stats_bar",
-    label: "Status Bar",
+    label: "Status bar",
     description: "Version, uptime, database health, hosts online",
     defaultEnabled: true,
   },
   {
     id: "counters_bar",
-    label: "Counters Bar",
-    description: "Host and credential totals, plus any counters plugins add",
+    label: "Totals",
+    description: "Host, credential, and plugin totals",
     defaultEnabled: true,
   },
   {
     id: "quick_actions",
-    label: "Quick Actions",
-    description: "Shortcuts to add hosts, credentials, settings",
+    label: "Quick actions",
+    description: "Add hosts and credentials, or open settings",
     defaultEnabled: true,
   },
   {
     id: "host_status",
-    label: "Host Status",
-    description: "Live status list with CPU/RAM per host",
+    label: "Host status",
+    description: "Host status, CPU, and memory usage",
     defaultEnabled: true,
   },
   {
     id: "recent_activity",
-    label: "Recent Activity",
-    description: "Feed of recent connection events",
+    label: "Recent activity",
+    description: "Recent connections",
     defaultEnabled: true,
   },
 ];

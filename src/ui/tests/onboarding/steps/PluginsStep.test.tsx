@@ -14,7 +14,10 @@ const loader = vi.hoisted(() => ({ syncPlugins: vi.fn(async () => {}) }));
 vi.mock("@/plugin-host/loader", () => loader);
 
 import { PluginsStep } from "@/onboarding/steps/PluginsStep";
-import { defaultChoices } from "@/onboarding/plugin-choices";
+import {
+  defaultChoices,
+  recommendedChoices,
+} from "@/onboarding/plugin-choices";
 
 function plugin(
   id: string,
@@ -49,6 +52,19 @@ const LIST: OnboardingPluginList = {
 };
 
 describe("defaultChoices", () => {
+  it("keeps non-recommended appearance fallbacks in fresh and recommended choices", () => {
+    const list = { ...LIST, plugins: [plugin("look", { defaultLook: true })] };
+    expect(defaultChoices(list)).toEqual({ look: "enabled" });
+    expect(recommendedChoices(list)).toEqual({ look: "enabled" });
+    expect(
+      defaultChoices({
+        ...list,
+        reason: "upgrade",
+        plugins: [plugin("look", { defaultLook: true, state: "disabled" })],
+      }),
+    ).toEqual({ look: "disabled" });
+  });
+
   it("keeps recommended plugins and removes the rest on a fresh install", () => {
     expect(defaultChoices(LIST)).toEqual({
       term: "enabled",
@@ -105,6 +121,22 @@ describe("PluginsStep", () => {
     // over the loaded apply has run. Flush it so beforeNext is never stale.
     await act(async () => {});
   }
+
+  it("blocks removing a default look but allows disabling it", async () => {
+    api.getOnboardingPlugins.mockResolvedValue({
+      ...LIST,
+      plugins: [...LIST.plugins, plugin("look", { defaultLook: true })],
+    });
+    await renderStep();
+    const group = screen.getByRole("radiogroup", { name: "LOOK" });
+    expect(
+      within(group).getByRole("radio", { name: /remove|Remove/ }),
+    ).toHaveProperty("disabled", true);
+    const off = within(group).getByRole("radio", { name: /disabled|Off/ });
+    expect(off).toHaveProperty("disabled", false);
+    fireEvent.click(off);
+    expect(off.getAttribute("aria-checked")).toBe("true");
+  });
 
   it("groups plugins by category and puts consent plugins in their own section", async () => {
     await renderStep();

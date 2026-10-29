@@ -25,7 +25,7 @@ export function defaultChoices(
       ) {
         return [plugin.id, currentChoice(plugin)];
       }
-      if (plugin.consent) return [plugin.id, "enabled"];
+      if (plugin.consent || plugin.defaultLook) return [plugin.id, "enabled"];
       return [plugin.id, plugin.recommended ? "enabled" : "remove"];
     }),
   );
@@ -37,7 +37,9 @@ export function recommendedChoices(
   return Object.fromEntries(
     list.plugins.map((plugin) => [
       plugin.id,
-      plugin.recommended || plugin.consent ? "enabled" : "remove",
+      plugin.recommended || plugin.consent || plugin.defaultLook
+        ? "enabled"
+        : "remove",
     ]),
   );
 }

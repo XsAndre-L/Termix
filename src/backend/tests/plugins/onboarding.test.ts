@@ -200,6 +200,19 @@ describe("describeOnboardingPlugins", () => {
 });
 
 describe("applyOnboardingChoices", () => {
+  it("keeps protected appearance plugins installed for stale removal requests", async () => {
+    writeIndex({ extra: { defaultLook: true } });
+    const loader = await chain();
+    const list = await onboarding.describeOnboardingPlugins();
+    expect(list.plugins.find((p) => p.id === "extra")?.defaultLook).toBe(true);
+    const result = await onboarding.applyOnboardingChoices({ extra: "remove" });
+    expect(result.failed).toEqual([]);
+    expect(result.removed).toEqual([]);
+    expect(result.resolved.extra).toBe("disabled");
+    expect(loader.get("extra")).toBeDefined();
+    expect(db.rows.has("extra")).toBe(true);
+  });
+
   it("enables, disables and removes, then clears the pending flag", async () => {
     const loader = await chain();
     db.rows.get("extra")!.state = "disabled";

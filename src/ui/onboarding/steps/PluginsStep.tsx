@@ -74,7 +74,11 @@ export function PluginsStep({
   const resolved = useMemo(() => {
     if (!list) return null;
     return resolvePluginChoices(
-      list.plugins.map((p) => ({ id: p.id, dependencies: p.dependencies })),
+      list.plugins.map((p) => ({
+        id: p.id,
+        dependencies: p.dependencies,
+        defaultLook: p.defaultLook,
+      })),
       choices,
     );
   }, [list, choices]);
@@ -163,10 +167,12 @@ export function PluginsStep({
   const counts = { enabled: 0, disabled: 0, remove: 0 };
   for (const plugin of list.plugins) counts[resolved.choices[plugin.id]]++;
   const forcedBy = new Map(
-    resolved.adjustments.map((a) => [
-      a.id,
-      a.requiredBy.map((id) => names.get(id) ?? id).join(", "),
-    ]),
+    resolved.adjustments
+      .filter((a) => a.requiredBy.length > 0)
+      .map((a) => [
+        a.id,
+        a.requiredBy.map((id) => names.get(id) ?? id).join(", "),
+      ]),
   );
 
   const setChoice = (id: string, choice: PluginChoice) =>
@@ -247,7 +253,10 @@ export function PluginsStep({
           </span>
           {plugins.map((plugin) => {
             const choice = resolved.choices[plugin.id];
-            const floor = forcedBy.has(plugin.id) ? RANK[choice] : 0;
+            const floor = Math.max(
+              plugin.defaultLook ? RANK.disabled : 0,
+              forcedBy.has(plugin.id) ? RANK[choice] : 0,
+            );
             return (
               <div
                 key={plugin.id}
@@ -271,6 +280,11 @@ export function PluginsStep({
                     <span className="text-[10px] leading-snug text-muted-foreground">
                       {pluginDescription(t, plugin)}
                     </span>
+                    {plugin.defaultLook && (
+                      <span className="text-[10px] text-muted-foreground">
+                        {t("onboarding.pluginsDefaultLook")}
+                      </span>
+                    )}
                     {forcedBy.has(plugin.id) && (
                       <span className="text-[10px] text-accent-brand">
                         {t("onboarding.pluginsKeptBecause", {
@@ -365,11 +379,13 @@ export function PluginsStep({
             <AlertTriangle size={13} />
             {t("onboarding.pluginsSomeFailed")}
           </span>
-          {failed.map((f) => (
-            <span key={`${f.id}:${f.error}`} className="text-muted-foreground">
-              {f.id ? `${names.get(f.id) ?? f.id}: ${f.error}` : f.error}
-            </span>
-          ))}
+          <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
+            {failed.map((f) => (
+              <li key={`${f.id}:${f.error}`}>
+                {f.id ? `${names.get(f.id) ?? f.id}: ${f.error}` : f.error}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

@@ -1408,7 +1408,7 @@ export function Auth({ onLogin }: AuthProps) {
                         id="reset-user"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        placeholder="your_username"
+                        placeholder={t("common.username")}
                         disabled={loading}
                       />
                     </Field>
@@ -1567,7 +1567,7 @@ export function Auth({ onLogin }: AuthProps) {
                           id="login-user"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          placeholder="username"
+                          placeholder={t("common.username")}
                           className="pl-8"
                           disabled={loading}
                           autoFocus
@@ -1641,7 +1641,7 @@ export function Auth({ onLogin }: AuthProps) {
                           id="reg-user"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          placeholder="choose_a_username"
+                          placeholder={t("common.username")}
                           className="pl-8"
                           disabled={loading}
                           autoFocus

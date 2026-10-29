@@ -1268,7 +1268,7 @@ function createTray() {
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: "Show Window",
+        label: "Open Termix",
         click: () => {
           if (mainWindow) {
             mainWindow.show();
@@ -1277,7 +1277,7 @@ function createTray() {
         },
       },
       {
-        label: "Quit",
+        label: "Quit Termix",
         click: () => {
           isQuitting = true;
           quitApp(app, mainWindow);

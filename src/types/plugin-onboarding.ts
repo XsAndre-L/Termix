@@ -13,6 +13,7 @@ export const PLUGIN_CHOICES: readonly PluginChoice[] = [
 ];
 
 export interface ChoicePlugin {
+  defaultLook?: boolean;
   id: string;
   /** Hard dependencies (plugin ids). */
   dependencies: string[];
@@ -50,6 +51,12 @@ export function resolvePluginChoices(
   adjustments: ChoiceAdjustment[];
 } {
   const resolved: Record<string, PluginChoice> = { ...choices };
+  // Keep bundled appearance fallbacks installed, even for stale clients.
+  for (const plugin of plugins) {
+    if (plugin.defaultLook && resolved[plugin.id] === "remove") {
+      resolved[plugin.id] = "disabled";
+    }
+  }
   const requiredBy = new Map<string, Set<string>>();
   const known = new Set(plugins.map((p) => p.id));
 
